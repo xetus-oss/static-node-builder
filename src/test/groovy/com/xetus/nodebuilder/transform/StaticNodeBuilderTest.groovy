@@ -40,7 +40,7 @@ class StaticNodeBuilderTest extends GroovyTestCase {
   void testBuilder2() {
     def builder = new Builder2()
     Node generated = builder.html {
-      head { title("I'm a cool title! Wowee!") }
+      head { title() }
       body([onload: "function() { alert('WHOA!') }"]) { 
         p([style: "Attribute restrictions not yet implemented"], "This is a paragraph!")
         a("This is a link")
