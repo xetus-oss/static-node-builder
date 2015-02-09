@@ -18,7 +18,7 @@ class StaticNodeBuilderTest extends GroovyTestCase {
         XmlUtil.serialize(generated) + "\n"
 
     def detailedDiff = new DetailedDiff(xmlDiff)
-    assertTrue detailedDiff.toString() , xmlDiff.similar()
+    assertTrue detailedDiff.toString(), xmlDiff.similar()
   }
 
   @CompileStatic
@@ -28,16 +28,54 @@ class StaticNodeBuilderTest extends GroovyTestCase {
   }
 
   @CompileStatic
-  void testBuilder1() {
+  void testBuilderWithSingleTag() {
     def builder = new Builder1()
+    
     Node generated = builder.html()
     Node expected = new XmlParser().parseText """<html/>"""
+    
+    compareXml(generated, expected)
+  }
+  
+  @CompileStatic
+  void testBuilderWithSingleTagAndTextAndAttributes() {
+    def builder = new Builder1()
+    
+    Node generated = builder.html([attr: "text"], "content")
+    Node expected = new XmlParser().parseText """
+    <html attr="text">content</html>
+    """
+    
     compareXml(generated, expected)
   }
 
+  void testBuilderWithNestedTags() {
+    def builder = new Builder2()
+    Node generated = builder.html {
+      head { title() }
+      body { 
+        p()
+        a()
+      }
+    }
+    
+    Node expected = new XmlParser().parseText """
+    <html>
+      <head>
+        <title/>
+      </head>
+      <body>
+        <p/>
+        <a/>
+      </body>
+    </html>
+    """
+    
+    compareXml(generated, expected)
+  }
   
   @CompileStatic
-  void testBuilder2() {
+  void testBuilderWithNestedTagsAndAttributesAndContent() {
     def builder = new Builder2()
     Node generated = builder.html {
       head { title() }
@@ -58,20 +96,48 @@ class StaticNodeBuilderTest extends GroovyTestCase {
       </body>
     </html>
     """
+    
     compareXml(generated, expected)
   } 
-
-  @StaticNodeBuilder
-  private class SimpleBuilder {
+  
+  @CompileStatic
+  void testBuilderWithNestedLogic() {
+    boolean showBody = false
+    String text = "This is the title text!"
+    def builder = new Builder2()
+    Node generated = builder.html {
+      
+      head { title(text) }
+      if (showBody) {
+        body {
+          p()
+          a()
+        }
+      }
+    }
+    
+    Node expected = new XmlParser().parseText """
+    <html>
+      <head>
+        <title>This is the title text!</title>
+      </head>
+    </html>
+    """
+    
+    compareXml(generated, expected)
   }
 
   @StaticNodeBuilder
-  private class Builder1 {
+  private static class SimpleBuilder {
+  }
+
+  @StaticNodeBuilder
+  private static class Builder1 {
     static schema = { html() }
   }
 
   @StaticNodeBuilder
-  private class Builder2 {
+  private static class Builder2 {
     static schema = {
       html {
         head { title() }
