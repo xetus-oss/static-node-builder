@@ -80,7 +80,8 @@ class StaticNodeBuilderTest extends GroovyTestCase {
     Node generated = builder.html {
       head { title() }
       body([onload: "function() { alert('WHOA!') }"]) { 
-        p([style: "Attribute restrictions not yet implemented"], "This is a paragraph!")
+        p(["data-attr": "Attribute restrictions not yet implemented"], 
+          "This is a paragraph!")
         a("This is a link")
       }
     }
@@ -91,7 +92,7 @@ class StaticNodeBuilderTest extends GroovyTestCase {
         <title/>
       </head>
       <body onload="function() { alert('WHOA!') }">
-        <p style="Attribute restrictions not yet implemented">This is a paragraph!</p>
+        <p data-attr="Attribute restrictions not yet implemented">This is a paragraph!</p>
         <a>This is a link</a>
       </body>
     </html>
@@ -141,9 +142,9 @@ class StaticNodeBuilderTest extends GroovyTestCase {
     static schema = {
       html {
         head { title() }
-        body(["onload"]) {
+        body() {
           p()
-          a(["href", "target"])
+          a()
         }
       }
     }

@@ -271,36 +271,16 @@ public class NodeBuilderASTTransformation extends AbstractASTTransformation {
         && !((TupleExpression) tuple).getExpressions().isEmpty()) {
 
       List<Expression> args = ((TupleExpression) tuple).getExpressions();
-
-      Expression lastExpr = args.get(args.size() - 1);
-      if (args.size() > 2 
-          || args.size() == 2
-          && !(args.get(0) instanceof ListExpression)
-          && !(lastExpr instanceof ClosureExpression) 
+      if (args.size() > 1 
           || args.size() == 1
-          && !(lastExpr instanceof ListExpression)
-          && !(lastExpr instanceof ClosureExpression)) {
+          && !(args.get(0) instanceof ClosureExpression)) {
         addError("Schema node definition must match the following method "
-                 + "signature: (List<String> allowedAttributes = null, String "
-                 + "text = null, Closure allowedChildren = null)",
+                 + "signature: (Closure allowedChildren = null)",
                  node);
         return null;
       }
 
-      if (lastExpr instanceof ClosureExpression) {
-        buildNodeClassesFromSchema(node, (ClosureExpression) lastExpr);
-      }
-
-      /*
-       * If a list of allowed attributes have been defined, we need to add that
-       * list expression to the current ClassNode class' list of
-       * allowedAttributes
-       * 
-       * if (args.get(0) instanceof ListExpression) { 
-       *  FieldNode allowedAttributes = node.getField(ALLOWED_ATTR_FIELD_NAME);
-       *  allowedAttributes.setInitialValueExpression(args.get(0)); 
-       * }
-       */
+      buildNodeClassesFromSchema(node, (ClosureExpression) args.get(0));
     }
 
     addMethodsToNode(className.toLowerCase(), parent, node);
