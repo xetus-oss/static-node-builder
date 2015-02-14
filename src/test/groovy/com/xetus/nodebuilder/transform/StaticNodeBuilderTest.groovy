@@ -127,6 +127,16 @@ class StaticNodeBuilderTest extends GroovyTestCase {
     
     compareXml(generated, expected)
   }
+  
+  @CompileStatic
+  void testBuilderWithSpecificCapitalizationWorksAsExpected() {
+    Builder3 builder = new Builder3()
+    Node generated = builder.Element {
+      OtherElement {
+        wEiRdCapitalizAtion()
+      }
+    }
+  }
 
   @StaticNodeBuilder
   private static class SimpleBuilder {
@@ -148,5 +158,16 @@ class StaticNodeBuilderTest extends GroovyTestCase {
         }
       }
     }
-  } 
+  }
+  
+  @StaticNodeBuilder
+  class Builder3 {
+    static schema = {
+      Element {
+        OtherElement {
+          wEiRdCapitalizAtion()
+        }
+      }
+    }
+  }
 }

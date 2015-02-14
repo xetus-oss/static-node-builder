@@ -283,7 +283,7 @@ public class NodeBuilderASTTransformation extends AbstractASTTransformation {
       buildNodeClassesFromSchema(node, (ClosureExpression) args.get(0));
     }
 
-    addMethodsToNode(className.toLowerCase(), parent, node);
+    addMethodsToNode(className, parent, node);
     return node;
   }
 
