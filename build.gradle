@@ -4,7 +4,6 @@ repositories {
 }
 
 apply plugin: 'eclipse'
-apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: "maven-publish"
 

@@ -29,7 +29,6 @@ import org.codehaus.groovy.ast.expr.ClassExpression;
 import org.codehaus.groovy.ast.expr.ClosureExpression;
 import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.expr.Expression;
-import org.codehaus.groovy.ast.expr.ListExpression;
 import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.TupleExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
@@ -314,8 +313,19 @@ public class NodeBuilderASTTransformation extends AbstractASTTransformation {
     ctorParent.setType(NODE_CLASS_NODE);
     Expression nameExpr = new ConstantExpression(methodName);
 
-    Parameter closureArg = new Parameter(ClassHelper.CLOSURE_TYPE.getPlainNodeReference(),
-                                         "code");
+    /*
+     * Force the child node definition closure to visit the delegation
+     * transformation; while compilers don't seem to mind, this helps IDEs pick
+     * up on the delegation chain.
+     */
+    Parameter closureArg = new Parameter(
+      ClassHelper.CLOSURE_TYPE.getPlainNodeReference(), "code");
+    AnnotationNode dtAnn = new AnnotationNode(ClassHelper.make(DelegatesTo.class));
+    dtAnn.addMember("value", new ClassExpression(childNode));
+    closureArg.addAnnotation(dtAnn);
+    new DelegateASTTransformation().visit(new ASTNode[] { 
+      dtAnn, closureArg 
+    }, sourceUnit);
 
     ClassNode attributeMap = ClassHelper.MAP_TYPE.getPlainNodeReference();
     GenericsType[] gt = new GenericsType[] { 
@@ -333,8 +343,8 @@ public class NodeBuilderASTTransformation extends AbstractASTTransformation {
      * new Node(parent, "ELEMENT")
      */
     Parameter[] params = new Parameter[] { closureArg };
-    ArgumentListExpression args = new ArgumentListExpression(ctorParent,
-                                                             new ConstantExpression(methodName));
+    ArgumentListExpression args = new ArgumentListExpression(ctorParent, 
+                                                             nameExpr);
     parentNode.addMethod(makeMethodNodeWithChild(methodName,
                                                  params,
                                                  closureArg,
@@ -396,18 +406,6 @@ public class NodeBuilderASTTransformation extends AbstractASTTransformation {
                                                     params,
                                                     childNode,
                                                     args));
-
-    /*
-     * Force the child node definition closure to visit the delegation
-     * transformation; while compilers don't seem to mind, this helps IDEs pick
-     * up on the delegation chain.
-     */
-    AnnotationNode dtAnn = new AnnotationNode(ClassHelper.make(DelegatesTo.class));
-    dtAnn.addMember("value", new ClassExpression(childNode));
-    closureArg.addAnnotation(dtAnn);
-    new DelegateASTTransformation().visit(new ASTNode[] { 
-      dtAnn, closureArg 
-    }, sourceUnit);
   }
 
   /**
@@ -461,7 +459,7 @@ public class NodeBuilderASTTransformation extends AbstractASTTransformation {
                                     ClassNode childNode, Statement code) {
     return new MethodNode(name,
                           ACC_PUBLIC,
-                          NODE_CLASS_NODE,
+                          childNode,
                           params,
                           ClassNode.EMPTY_ARRAY,
                           code);
