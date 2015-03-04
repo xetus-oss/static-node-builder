@@ -49,6 +49,7 @@ class StaticNodeBuilderTest extends GroovyTestCase {
     compareXml(generated, expected)
   }
 
+  @CompileStatic
   void testBuilderWithNestedTags() {
     def builder = new Builder2()
     Node generated = builder.html {
@@ -136,6 +137,40 @@ class StaticNodeBuilderTest extends GroovyTestCase {
         wEiRdCapitalizAtion()
       }
     }
+  }
+  
+  /**
+   * TODO: this currently generates errors in Eclipse due
+   * to a lack of compiler binding to the generated classes,
+   * although it compiles fine. This is reproducible in 
+   * consuming projects.
+   * 
+   * http://jira.codehaus.org/browse/GRECLIPSE-1198
+   */
+  @CompileStatic
+  void testBuilderInExternalClass() {
+    BuilderInExternalClass builder = new BuilderInExternalClass()
+    Node generated = builder.html {
+      head { title() }
+      body { 
+        p()
+        a()
+      }
+    }
+    
+    Node expected = new XmlParser().parseText """
+    <html>
+      <head>
+        <title/>
+      </head>
+      <body>
+        <p/>
+        <a/>
+      </body>
+    </html>
+    """
+    
+    compareXml(generated, expected)
   }
 
   @StaticNodeBuilder
